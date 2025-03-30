@@ -34,6 +34,7 @@ defmodule MCP.Protocol.Generator.Parser do
     server_requests = get_in(spec, ["definitions", "ServerRequest", "anyOf"]) || []
 
     (client_requests ++ server_requests)
+    |> Enum.uniq()
     |> Enum.map(fn request ->
       ref = request["$ref"]
       definition_name = extract_definition_name(ref)
@@ -59,7 +60,8 @@ defmodule MCP.Protocol.Generator.Parser do
           method: method,
           params: parse_params(params),
           params_type: params_type,
-          result_type: get_result_type_for_request(definition_name, spec)
+          result_type: get_result_type_for_request(definition_name, spec),
+          kind: :requests
         }
       else
         nil
@@ -74,6 +76,7 @@ defmodule MCP.Protocol.Generator.Parser do
     server_notifications = get_in(spec, ["definitions", "ServerNotification", "anyOf"]) || []
 
     (client_notifications ++ server_notifications)
+    |> Enum.uniq()
     |> Enum.map(fn notification ->
       ref = notification["$ref"]
       definition_name = extract_definition_name(ref)
@@ -98,7 +101,8 @@ defmodule MCP.Protocol.Generator.Parser do
           description: definition["description"] || "",
           method: method,
           params: parse_params(params),
-          params_type: params_type
+          params_type: params_type,
+          kind: :notifications
         }
       else
         nil
@@ -116,9 +120,8 @@ defmodule MCP.Protocol.Generator.Parser do
       Enum.concat(
         # Convert requests to param structures
         Enum.map(
-          get_in(spec, ["definitions", "ClientRequest", "anyOf"]) ||
-            [] ++
-              get_in(spec, ["definitions", "ServerRequest", "anyOf"]) || [],
+          (get_in(spec, ["definitions", "ClientRequest", "anyOf"]) || []) ++
+            (get_in(spec, ["definitions", "ServerRequest", "anyOf"]) || []),
           fn req ->
             ref = req["$ref"]
             req_name = extract_definition_name(ref)
@@ -143,9 +146,10 @@ defmodule MCP.Protocol.Generator.Parser do
 
         # Convert notifications to param structures
         Enum.map(
-          get_in(spec, ["definitions", "ClientNotification", "anyOf"]) ||
-            [] ++
-              get_in(spec, ["definitions", "ServerNotification", "anyOf"]) || [],
+          Enum.uniq(
+            (get_in(spec, ["definitions", "ClientNotification", "anyOf"]) || []) ++
+              (get_in(spec, ["definitions", "ServerNotification", "anyOf"]) || [])
+          ),
           fn notif ->
             ref = notif["$ref"]
             notif_name = extract_definition_name(ref)
@@ -159,7 +163,8 @@ defmodule MCP.Protocol.Generator.Parser do
                 name: params_name,
                 description: "Parameters for #{notif_name}",
                 properties: parse_properties(params["properties"] || %{}),
-                required: params["required"] || []
+                required: params["required"] || [],
+                kind: :structures
               }
             else
               nil
@@ -183,7 +188,8 @@ defmodule MCP.Protocol.Generator.Parser do
           name: name,
           description: definition["description"] || "",
           properties: parse_properties(definition["properties"] || %{}),
-          required: definition["required"] || []
+          required: definition["required"] || [],
+          kind: :structures
         }
       end)
 
@@ -204,7 +210,8 @@ defmodule MCP.Protocol.Generator.Parser do
         name: name,
         description: definition["description"] || "",
         values: parse_enum_values(definition["enum"] || []),
-        type: definition["type"] || "string"
+        type: definition["type"] || "string",
+        kind: :enumerations
       }
     end)
   end
@@ -225,7 +232,8 @@ defmodule MCP.Protocol.Generator.Parser do
       %{
         name: name,
         description: definition["description"] || "",
-        type: definition["type"]
+        type: definition["type"],
+        kind: :type_aliases
       }
     end)
   end
@@ -260,6 +268,7 @@ defmodule MCP.Protocol.Generator.Parser do
         # Search for the specific result in anyOf arrays
         matching_result =
           (client_results ++ server_results)
+          |> Enum.uniq()
           |> Enum.find(fn result ->
             ref = result["$ref"]
             ref_name = extract_definition_name(ref)
@@ -310,7 +319,7 @@ defmodule MCP.Protocol.Generator.Parser do
     cond do
       prop["$ref"] -> extract_definition_name(prop["$ref"])
       prop["type"] -> prop["type"]
-      prop["anyOf"] -> "union"
+      prop["anyOf"] -> "map()"
       prop["const"] -> "const:#{prop["const"]}"
       true -> "any"
     end

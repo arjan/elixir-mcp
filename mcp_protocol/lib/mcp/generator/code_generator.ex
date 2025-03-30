@@ -13,12 +13,6 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
     "object" => "map()"
   }
 
-  # Define schematic type mapping functions for use in generated code
-  defp str(), do: "Schematic.str()"
-  defp int(), do: "Schematic.int()"
-  defp bool(), do: "Schematic.bool()"
-  defp number(), do: "Schematic.number()"
-
   @doc """
   Generates code from the parsed specification.
 
@@ -224,9 +218,6 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
         """,
         else: ""
 
-    # This would be populated based on the parsed structure
-    fields = []
-
     result_type =
       if request.result_type,
         do: "@type result :: MCP.Protocol.Structures.#{request.result_type}.t()",
@@ -379,13 +370,6 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
 
   # Generate a single enumeration module
   defp generate_enumeration_module(enum, module_name) do
-    description =
-      if String.trim(enum.description || "") != "",
-        do: """
-          #{enum.description}
-        """,
-        else: ""
-
     type = map_base_type(enum.type)
 
     value_functions =
@@ -417,7 +401,7 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
 
     """
     # codegen: do not edit
-    defmodule MCP.Protocol.Enumerations.#{module_name} do
+    defmodule MCP.Protocol.Structures.#{module_name} do
       @type t :: #{type}
 
       import Schematic, warn: false
@@ -451,7 +435,7 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
 
     """
     # codegen: do not edit
-    defmodule MCP.Protocol.TypeAlias.#{module_name} do
+    defmodule MCP.Protocol.Structures.#{module_name} do
       #{description}
       import Schematic, warn: false
 
@@ -469,22 +453,11 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
   # Convert a request name to a module name
   defp request_module_name(name) do
     name
-    |> String.split("/")
-    |> Enum.map(&String.capitalize/1)
-    |> Enum.join("")
   end
 
   # Convert a notification name to a module name
   defp notification_module_name(name) do
-    name =
-      if String.starts_with?(name, "$"),
-        do: "Dollar" <> String.replace_prefix(name, "$", ""),
-        else: name
-
     name
-    |> String.split("/")
-    |> Enum.map(&String.capitalize/1)
-    |> Enum.join("")
   end
 
   # Convert a structure name to a module name
@@ -572,7 +545,7 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
         "bool()"
 
       "number" ->
-        "number()"
+        "int()"
 
       "array" ->
         "list()"
@@ -623,7 +596,7 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
               "string" -> "str()"
               "integer" -> "int()"
               "boolean" -> "bool()"
-              "number" -> "number()"
+              "number" -> "int()"
               "null" -> "nil"
               _ -> "any()"
             end
@@ -639,7 +612,7 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
     case type do
       "string" -> "String.t()"
       "integer" -> "integer()"
-      "number" -> "number()"
+      "number" -> "int()"
       _ -> "any()"
     end
   end

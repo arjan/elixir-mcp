@@ -25,7 +25,7 @@ defmodule MCP.Protocol.MixProject do
       {:jason, "~> 1.3"},
       {:schematic, "~> 0.2.1"},
       {:ex_doc, ">= 0.0.0", only: :dev},
-      {:req, "~> 0.3", only: :dev}
+      {:req, "~> 0.3", only: [:dev, :test]}
     ]
   end
 end

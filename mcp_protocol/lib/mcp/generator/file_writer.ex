@@ -46,12 +46,12 @@ defmodule MCP.Protocol.Generator.FileWriter do
 
       # Write enumeration modules
       Enum.each(generated_modules.enumerations, fn {name, content} ->
-        write_file("#{@base_dir}/enumerations/#{module_to_filename(name)}.ex", content)
+        write_file("#{@base_dir}/structures/#{module_to_filename(name)}.ex", content)
       end)
 
       # Write type alias modules
       Enum.each(generated_modules.type_aliases, fn {name, content} ->
-        write_file("#{@base_dir}/type_aliases/#{module_to_filename(name)}.ex", content)
+        write_file("#{@base_dir}/structures/#{module_to_filename(name)}.ex", content)
       end)
 
       {:ok, "All files written successfully"}
@@ -65,15 +65,14 @@ defmodule MCP.Protocol.Generator.FileWriter do
     [
       "#{@base_dir}/requests",
       "#{@base_dir}/notifications",
-      "#{@base_dir}/structures",
-      "#{@base_dir}/enumerations",
-      "#{@base_dir}/type_aliases"
+      "#{@base_dir}/structures"
     ]
     |> Enum.each(&File.mkdir_p!/1)
   end
 
   # Write a file with the given content
   defp write_file(path, content) do
+    IO.puts("Writing file #{path}")
     File.write!(path, content)
   end
 
