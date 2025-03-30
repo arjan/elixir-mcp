@@ -317,11 +317,26 @@ defmodule MCP.Protocol.Generator.Parser do
   # Determine the type of a property
   defp determine_property_type(prop) do
     cond do
-      prop["$ref"] -> extract_definition_name(prop["$ref"])
-      prop["type"] -> prop["type"]
-      prop["anyOf"] -> "map()"
-      prop["const"] -> "const:#{prop["const"]}"
-      true -> "any"
+      prop["$ref"] ->
+        extract_definition_name(prop["$ref"])
+
+      prop["type"] ->
+        prop["type"]
+
+      prop["anyOf"] ->
+        options =
+          prop["anyOf"]
+          |> Enum.map(fn option ->
+            if option["$ref"], do: extract_definition_name(option["$ref"]), else: option["type"]
+          end)
+
+        %{type: "anyOf", options: options}
+
+      prop["const"] ->
+        "const:#{prop["const"]}"
+
+      true ->
+        "any"
     end
   end
 

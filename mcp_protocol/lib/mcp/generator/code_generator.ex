@@ -99,7 +99,7 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
         module_name = request_module_name(req.name)
 
         """
-              %{"method" => "#{req.name}"} ->
+              %{"method" => "#{req.method}"} ->
                 MCP.Protocol.Requests.#{module_name}.schematic()
         """
       end)
@@ -132,7 +132,7 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
         module_name = notification_module_name(notification.name)
 
         """
-              %{"method" => "#{notification.name}"} ->
+              %{"method" => "#{notification.method}"} ->
                 MCP.Protocol.Notifications.#{module_name}.schematic()
         """
       end)
@@ -236,7 +236,7 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
 
       @derive Jason.Encoder
       typedstruct do
-        field :method, String.t(), default: "#{request.name}"
+        field :method, String.t(), default: "#{request.method}"
         field :jsonrpc, String.t(), default: "2.0"
         field :id, integer(), enforce: true
         field :params, MCP.Protocol.Structures.#{params_type}.t()
@@ -248,7 +248,7 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
       @spec schematic() :: Schematic.t()
       def schematic() do
         schema(__MODULE__, %{
-          method: "#{request.name}",
+          method: "#{request.method}",
           jsonrpc: "2.0",
           id: int(),
           params: MCP.Protocol.Structures.#{params_type}.schematic()
@@ -291,7 +291,7 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
 
       @derive Jason.Encoder
       typedstruct do
-        field :method, String.t(), default: "#{notification.name}"
+        field :method, String.t(), default: "#{notification.method}"
         field :jsonrpc, String.t(), default: "2.0"
         field :params, MCP.Protocol.Structures.#{params_type}.t()
       end
@@ -300,7 +300,7 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
       @spec schematic() :: Schematic.t()
       def schematic() do
         schema(__MODULE__, %{
-          method: "#{notification.name}",
+          method: "#{notification.method}",
           jsonrpc: "2.0",
           params: MCP.Protocol.Structures.#{params_type}.schematic()
         })
@@ -324,6 +324,7 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
       structure.properties
       |> Enum.map(fn prop ->
         type = map_type(prop.type)
+
         enforce = if prop.optional, do: "", else: ", enforce: true"
         "    field :#{to_snake_case(prop.name)}, #{type}#{enforce}"
       end)
@@ -527,6 +528,10 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
             Map.get(@type_mapping, other, "any()")
         end
 
+      # Handle anyOf type structure from parser
+      Map.has_key?(type, :type) and type.type == "anyOf" ->
+        "map()"
+
       true ->
         "any()"
     end
@@ -555,6 +560,9 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
 
       "null" ->
         "nil"
+
+      "any" ->
+        "any()"
 
       _ ->
         if String.contains?(type, ".") do
@@ -591,6 +599,9 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
           "object" ->
             "map()"
 
+          "any" ->
+            "any()"
+
           other ->
             case other do
               "string" -> "str()"
@@ -601,6 +612,15 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
               _ -> "any()"
             end
         end
+
+      # Handle anyOf type structure from parser
+      Map.has_key?(type, :type) and type.type == "anyOf" ->
+        options_schematics =
+          type.options
+          |> Enum.map(fn option -> map_schematic_type(option) end)
+          |> Enum.join(", ")
+
+        "oneof([#{options_schematics}])"
 
       true ->
         "any()"
