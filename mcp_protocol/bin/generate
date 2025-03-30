@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -e
+
+echo "==> Generating Protocol"
+mix run -e "MCP.Protocol.Generator.generate()"
+
+echo "==> mix format"
+mix format
