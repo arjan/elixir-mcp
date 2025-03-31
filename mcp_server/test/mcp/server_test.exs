@@ -21,7 +21,7 @@ defmodule MCP.ServerTest do
 
   test "MCP server exposes its info" do
     assert TestServer.__mcp__() == %{
-             tools: [{"double_it", 1}]
+             tools: [double_it: 1]
            }
   end
 
