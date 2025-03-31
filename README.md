@@ -48,20 +48,6 @@ end
 
 All public functions that are decorated with `:tool_call` in this module are exposed on the MCP server as tool calls.
 
-This server can then be started from the command line like so, using the `mcp_server` escript:
-
-```
-./mcp_server MyServer --stdio
-```
-
-Or in SSE mode on `http://localhost:8080/sse`:
-
-```
-./mcp_server MyServer --sse --port 8080
-```
-
-
-
 ### Components
 
 **MCP Protocol** (`mcp_protocol/`)
