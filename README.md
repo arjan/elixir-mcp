@@ -20,7 +20,7 @@ For more information about the Model Context Protocol, visit the [official docum
 **MCP Protocol** (`mcp_protocol/`)
 
 Contains the core protocol implementation for Model Context Protocol, parsing and valiting its JSON messages. The protocol's structs are generated from [the official spec](https://github.com/modelcontextprotocol/specification/blob/main/schema/2025-03-26/schema.json).
-   - 
+
 
 **MCP Server** (`mcp_server/`)
   
