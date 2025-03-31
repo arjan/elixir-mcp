@@ -3,6 +3,7 @@
 A toolkit for building servers (and clients!) that enable LLMs to call tools and access context.
 
 [![MCP Protocol CI](https://github.com/arjan/elixir-mcp/actions/workflows/mcp_protocol.yml/badge.svg)](https://github.com/arjan/elixir-mcp/actions/workflows/mcp_protocol.yml)
+[![MCP Server CI](https://github.com/arjan/elixir-mcp/actions/workflows/mcp_server.yml/badge.svg)](https://github.com/arjan/elixir-mcp/actions/workflows/mcp_server.yml)
 
 [![Hex.pm](https://img.shields.io/hexpm/v/mcp_protocol)](https://hex.pm/packages/mcp_protocol)
 [![Hex.pm](https://img.shields.io/hexpm/v/mcp_server)](https://hex.pm/packages/mcp_server)
