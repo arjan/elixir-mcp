@@ -1,6 +1,7 @@
 # Elixir Model Context Protocol SDK
 
-[![Build Status](https://github.com/arjan/elixir-mcp/workflows/CI/badge.svg)](https://github.com/arjan/elixir-mcp/actions)
+[![MCP Protocol CI](https://github.com/arjan/elixir-mcp/actions/workflows/mcp_protocol.yml/badge.svg)](https://github.com/arjan/elixir-mcp/actions/workflows/mcp_protocol.yml)
+
 [![Hex.pm](https://img.shields.io/hexpm/v/mcp_protocol)](https://hex.pm/packages/mcp_protocol)
 [![Hex.pm](https://img.shields.io/hexpm/v/mcp_server)](https://hex.pm/packages/mcp_server)
 [![Hex.pm](https://img.shields.io/hexpm/dt/mcp_protocol)](https://hex.pm/packages/mcp_protocol)
