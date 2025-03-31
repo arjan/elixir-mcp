@@ -1,5 +1,7 @@
 defmodule MCP.Server do
   alias MCP.Protocol.Structures.LoggingLevel
+  alias MCP.Protocol.ErrorResponse
+  alias MCP.Server.Buffer
 
   defmodule InvalidRequest do
     defexception message: nil
@@ -108,18 +110,18 @@ defmodule MCP.Server do
 
   ```elixir
   @impl true
-  def handle_request(%Initialize{params: %InitializeParams{root_uri: root_uri}}, lsp) do
-    {:reply,
-     %InitializeResult{
-       capabilities: %ServerCapabilities{
-         text_document_sync: %TextDocumentSyncOptions{
-           open_close: true,
-           save: %SaveOptions{include_text: true},
-           change: TextDocumentSyncKind.full()
-         }
-       },
-       server_info: %{name: "MyMCP"}
-     }, assign(lsp, root_uri: root_uri)}
+  def handle_request(%Requests.InitializeRequest{}, state) do
+  {:reply,
+    %Structures.InitializeResult{
+      protocol_version: "2024-11-05",
+      capabilities: %Structures.ServerCapabilities{
+        tools: %{}
+      },
+      server_info: %Structures.Implementation{
+        name: "Elixir Example MCP Server",
+        version: "0.1.0"
+      }
+    }, state}
   end
   ```
   """
@@ -165,7 +167,7 @@ defmodule MCP.Server do
   @options_schema NimbleOptions.new!(
                     buffer: [
                       type: {:or, [:pid, :atom]},
-                      doc: "The `t:pid/0` or name of the `MCP.Server.Buffer` process."
+                      doc: "The `t:pid/0` or name of the `Buffer` process."
                     ],
                     name: [
                       type: :atom,
@@ -201,7 +203,7 @@ defmodule MCP.Server do
         if opts[:name], do: Process.register(self(), opts[:name])
         :proc_lib.init_ack(parent, {:ok, me})
 
-        MCP.Server.Buffer.listen(buffer, me)
+        Buffer.listen(buffer, me)
 
         loop(state, parent, deb)
     end
@@ -256,7 +258,7 @@ defmodule MCP.Server do
 
     :telemetry.span([:gen_lsp, :notify, :server], %{}, fn ->
       result =
-        MCP.Server.Buffer.outgoing(
+        Buffer.outgoing(
           buffer,
           dump!(notification.__struct__.schematic(), notification)
         )
@@ -286,7 +288,7 @@ defmodule MCP.Server do
 
     :telemetry.span([:mcp_server, :request, :server], %{}, fn ->
       result =
-        MCP.Server.Buffer.outgoing_sync(
+        Buffer.outgoing_sync(
           buffer,
           dump!(request.__struct__.schematic(), request),
           timeout
@@ -321,8 +323,8 @@ defmodule MCP.Server do
             {:error, error} ->
               {:ok, output} =
                 Schematic.dump(
-                  MCP.Protocol.ErrorResponse.schematic(),
-                  %MCP.Protocol.ErrorResponse{
+                  ErrorResponse.schematic(),
+                  %ErrorResponse{
                     # internal error
                     code: 500,
                     message: error
@@ -338,7 +340,7 @@ defmodule MCP.Server do
               deb =
                 :sys.handle_debug(deb, &write_debug/3, __MODULE__, {:out, :request, from})
 
-              MCP.Server.Buffer.outgoing(state.buffer, packet)
+              Buffer.outgoing(state.buffer, packet)
               loop(state, parent, deb)
 
             _ ->
@@ -357,7 +359,7 @@ defmodule MCP.Server do
                     {:reply, reply, %State{} = state} ->
                       response_key =
                         case reply do
-                          %MCP.Protocol.ErrorResponse{} -> "error"
+                          %ErrorResponse{} -> "error"
                           _ -> "result"
                         end
 
@@ -373,8 +375,8 @@ defmodule MCP.Server do
 
                             {:ok, output} =
                               Schematic.dump(
-                                MCP.Protocol.ErrorResponse.schematic(),
-                                %MCP.Protocol.ErrorResponse{
+                                ErrorResponse.schematic(),
+                                %ErrorResponse{
                                   code: 500,
                                   message: Exception.format(:error, exception)
                                 }
@@ -392,7 +394,7 @@ defmodule MCP.Server do
                       deb =
                         :sys.handle_debug(deb, &write_debug/3, __MODULE__, {:out, :request, from})
 
-                      MCP.Server.Buffer.outgoing(state.buffer, packet)
+                      Buffer.outgoing(state.buffer, packet)
 
                       duration = System.system_time(:microsecond) - start
 
@@ -448,7 +450,7 @@ defmodule MCP.Server do
                   deb =
                     :sys.handle_debug(deb, &write_debug/3, __MODULE__, {:out, :request, from})
 
-                  MCP.Server.Buffer.outgoing(state.buffer, packet)
+                  Buffer.outgoing(state.buffer, packet)
 
                   loop(state, parent, deb)
               end

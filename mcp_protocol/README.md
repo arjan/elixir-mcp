@@ -1,6 +1,6 @@
-# MCP.Protocol
+# Model Context Protocol
 
-**TODO: Add description**
+This package holds the main schema modules as used by the MCP client and server implementations.
 
 ## Installation
 
