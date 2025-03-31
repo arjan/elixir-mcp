@@ -1,7 +1,26 @@
-defmodule MCP.Server do
+defmodule MCP.BaseServer do
   alias MCP.Protocol.Structures.LoggingLevel
   alias MCP.Protocol.ErrorResponse
   alias MCP.Server.Buffer
+
+  defmodule State do
+    use TypedStruct
+
+    @doc """
+    The MCP data structure.
+    """
+    typedstruct do
+      field(:mod, atom(), enforce: true)
+      field(:assigns, map(), default: Map.new())
+      field(:buffer, atom() | pid())
+      field(:pid, pid())
+    end
+
+    @spec assign(t(), Keyword.t()) :: t()
+    def assign(%__MODULE__{assigns: assigns} = state, new_assigns) when is_list(new_assigns) do
+      %{state | assigns: Map.merge(assigns, Map.new(new_assigns))}
+    end
+  end
 
   defmodule InvalidRequest do
     defexception message: nil
@@ -51,15 +70,13 @@ defmodule MCP.Server do
     end
   end
 
-  alias MCP.Server.State
-
   defmacro __using__(_) do
     quote do
-      @behaviour MCP.Server
+      @behaviour MCP.BaseServer
 
       require Logger
 
-      import MCP.Server.State
+      import MCP.BaseServer.State
 
       def child_spec(opts) do
         %{
@@ -73,7 +90,7 @@ defmodule MCP.Server do
 
       @impl true
       def handle_info(_, state) do
-        warning(state, "Unhandled message passed to handle_info/2")
+        # warning(state, "Unhandled message passed to handle_info/2")
 
         {:noreply, state}
       end
@@ -87,7 +104,7 @@ defmodule MCP.Server do
   @doc """
   The callback responsible for initializing the process.
 
-  Receives the `t:MCP.Server.State.t/0` token as the first argument and the arguments that were passed to `MCP.Server.start_link/3` as the second.
+  Receives the `t:MCP.BaseServer.State.t/0` token as the first argument and the arguments that were passed to `MCP.Server.start_link/3` as the second.
 
   ## Usage
 
@@ -104,7 +121,7 @@ defmodule MCP.Server do
   @doc """
   The callback responsible for handling requests from the client.
 
-  Receives the request struct as the first argument and the MCP token `t:MCP.Server.State.t/0` as the second.
+  Receives the request struct as the first argument and the MCP token `t:MCP.BaseServer.State.t/0` as the second.
 
   ## Usage
 
@@ -127,11 +144,11 @@ defmodule MCP.Server do
   """
   @callback handle_request(request :: term(), state) ::
               {:reply, reply :: term(), state} | {:noreply, state}
-            when state: MCP.Server.State.t()
+            when state: MCP.BaseServer.State.t()
   @doc """
   The callback responsible for handling notifications from the client.
 
-  Receives the notification struct as the first argument and the MCP token `t:MCP.Server.State.t/0` as the second.
+  Receives the notification struct as the first argument and the MCP token `t:MCP.BaseServer.State.t/0` as the second.
 
   ## Usage
 
@@ -149,7 +166,7 @@ defmodule MCP.Server do
   @doc """
   The callback responsible for handling normal messages.
 
-  Receives the message as the first argument and the MCP token `t:MCP.Server.State.t/0` as the second.
+  Receives the message as the first argument and the MCP token `t:MCP.BaseServer.State.t/0` as the second.
 
   ## Usage
 

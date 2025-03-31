@@ -18,6 +18,49 @@ Elixir MCP is a modular Elixir project that provides a protocol implementation a
 
 For more information about the Model Context Protocol, visit the [official documentation](https://modelcontextprotocol.io/introduction).
 
+### Getting started - creating an MCP server
+
+```elixir
+defmodule MyServer do
+   use MCP.Server, name: "My cool server", version: "1.0.2"
+
+   @impl true
+   def init(_args) do
+      state = %{}
+      {:ok, state}
+   end
+
+   @type location_info :: %{
+      place_name: String.t()
+   }
+
+   @doc """
+   Retrieve information about the given document
+   """
+   @decorate tool_call()
+   @spec get_location_info(input :: String.t(), state ::term()) :: location_info()
+   def get_location_info(input) do
+     %{place_name: input <> "'s place"}
+   end
+end
+```
+
+All public functions that are decorated with `:tool_call` in this module are exposed on the MCP server as tool calls.
+
+This server can then be started from the command line like so, using the `mcp_server` escript:
+
+```
+./mcp_server MyServer --stdio
+```
+
+Or in SSE mode on `http://localhost:8080/sse`:
+
+```
+./mcp_server MyServer --sse --port 8080
+```
+
+
+
 ### Components
 
 **MCP Protocol** (`mcp_protocol/`)

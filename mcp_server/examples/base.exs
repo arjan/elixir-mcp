@@ -1,12 +1,25 @@
 defmodule TestServer do
-  use MCP.Server
+  @moduledoc """
+  A simple example of an MCP server using the `MCP.BaseServer` module.
+
+  Implementing MCP.BaseServer allows you to have fine grained control over the MCP
+  server and its responses to the client, without any Elixir macro magic.
+
+  The downside to this of course is that every MCP messages has to be handled by the module,
+  and all the message structures must match with what is to be expected.
+
+  For a simpler approach to building MCP servers, see the MCP.Server module which builds on
+  BaseServer but allows for easier, more idiomatic MCP server implementation.
+  """
+
+  use MCP.BaseServer
 
   alias MCP.Protocol.Requests
   alias MCP.Protocol.Structures
 
   def start_link(args) do
     {args, opts} = Keyword.split(args, [])
-    MCP.Server.start_link(__MODULE__, args, opts)
+    MCP.BaseServer.start_link(__MODULE__, args, opts)
   end
 
   @impl true

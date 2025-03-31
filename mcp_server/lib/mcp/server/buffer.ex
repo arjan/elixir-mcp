@@ -92,11 +92,11 @@ defmodule MCP.Server.Buffer do
               %{state | awaiting_response: awaiting_response}
 
             %{"id" => _} = request ->
-              MCP.Server.request_server(lsp, request)
+              MCP.BaseServer.request_server(lsp, request)
               state
 
             notification ->
-              MCP.Server.notify_server(lsp, notification)
+              MCP.BaseServer.notify_server(lsp, notification)
               state
           end
 
