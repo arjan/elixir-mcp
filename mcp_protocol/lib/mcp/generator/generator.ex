@@ -7,8 +7,6 @@ defmodule MCP.Protocol.Generator do
   which are defined using the typedstruct and Schematic libraries.
   """
 
-  @spec_url "https://raw.githubusercontent.com/modelcontextprotocol/specification/refs/heads/main/schema/2025-03-26/schema.json"
-
   require Logger
   alias MCP.Protocol.Generator.{Parser, CodeGenerator, FileWriter}
 
@@ -30,16 +28,24 @@ defmodule MCP.Protocol.Generator do
   @doc """
   Fetches the specification from the GitHub repository.
   """
-  def fetch_specification do
-    case Req.get(@spec_url) do
-      {:ok, %{status: 200, body: body}} ->
-        {:ok, body}
+  if Code.ensure_loaded?(Req) do
+    @spec_url "https://raw.githubusercontent.com/modelcontextprotocol/specification/refs/heads/main/schema/2025-03-26/schema.json"
 
-      {:ok, %{status: status_code}} ->
-        {:error, "Failed to fetch specification: HTTP #{status_code}"}
+    def fetch_specification do
+      case Req.get(@spec_url) do
+        {:ok, %{status: 200, body: body}} ->
+          {:ok, body}
 
-      {:error, reason} ->
-        {:error, "Failed to fetch specification: #{inspect(reason)}"}
+        {:ok, %{status: status_code}} ->
+          {:error, "Failed to fetch specification: HTTP #{status_code}"}
+
+        {:error, reason} ->
+          {:error, "Failed to fetch specification: #{inspect(reason)}"}
+      end
+    end
+  else
+    def fetch_specification do
+      {:error, "Req is not loaded"}
     end
   end
 end
