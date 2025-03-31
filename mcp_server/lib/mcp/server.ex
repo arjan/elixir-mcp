@@ -71,7 +71,7 @@ defmodule MCP.Server do
 
       @impl true
       def handle_info(_, state) do
-        Logger.warning("Unhandled message passed to handle_info/2")
+        warning(state, "Unhandled message passed to handle_info/2")
 
         {:noreply, state}
       end
@@ -342,6 +342,8 @@ defmodule MCP.Server do
               loop(state, parent, deb)
 
             _ ->
+              request = Map.put_new(request, "params", %{})
+
               case MCP.Protocol.Requests.new(request) do
                 {:ok, %{id: id} = req} ->
                   Process.put(:request_id, id)
@@ -363,19 +365,18 @@ defmodule MCP.Server do
                       {response_key, response} =
                         case Schematic.dump(req.__struct__.result(), reply) do
                           {:ok, output} ->
+                            log(state, "result: #{inspect(output)}")
                             {response_key, output}
 
                           {:error, errors} ->
                             exception = InvalidResponse.exception({req.method, reply, errors})
-
-                            Logger.error(Exception.format(:error, exception))
 
                             {:ok, output} =
                               Schematic.dump(
                                 MCP.Protocol.ErrorResponse.schematic(),
                                 %MCP.Protocol.ErrorResponse{
                                   code: 500,
-                                  message: exception.message
+                                  message: Exception.format(:error, exception)
                                 }
                               )
 
@@ -428,15 +429,13 @@ defmodule MCP.Server do
                   # an `id` property to signal its a request
                   exception = InvalidRequest.exception({request, errors})
 
-                  Logger.error(Exception.format(:error, exception))
-
                   {:ok, output} =
                     Schematic.dump(
                       MCP.Protocol.ErrorResponse.schematic(),
                       %MCP.Protocol.ErrorResponse{
                         # invalid request
                         code: 400,
-                        message: exception.message
+                        message: Exception.format(:error, exception)
                       }
                     )
 
@@ -470,6 +469,8 @@ defmodule MCP.Server do
               loop(state, parent, deb)
 
             _ ->
+              notification = Map.put_new(notification, "params", %{})
+
               case MCP.Protocol.Notifications.new(notification) do
                 {:ok, note} ->
                   result =
@@ -500,8 +501,7 @@ defmodule MCP.Server do
                 {:error, errors} ->
                   # the payload is not parseable at all, other than being valid JSON
                   exception = InvalidNotification.exception({notification, errors})
-
-                  Logger.warning(Exception.format(:error, exception))
+                  error(state, Exception.format(:error, exception))
 
                   deb =
                     :sys.handle_debug(deb, &write_debug/3, __MODULE__, {:out, :request, from})
@@ -558,7 +558,6 @@ defmodule MCP.Server do
       :telemetry.execute(prefix ++ [:exception], %{message: message})
 
       message = Exception.format(:error, e, __STACKTRACE__)
-      Logger.error(message)
       error(state, message)
 
       callback.({:error, message})

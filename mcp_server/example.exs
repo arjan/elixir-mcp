@@ -1,6 +1,9 @@
 defmodule TestServer do
   use MCP.Server
 
+  alias MCP.Protocol.Requests
+  alias MCP.Protocol.Structures
+
   def start_link(args) do
     {args, opts} = Keyword.split(args, [])
     MCP.Server.start_link(__MODULE__, args, opts)
@@ -13,24 +16,57 @@ defmodule TestServer do
   end
 
   @impl true
-  def handle_request(%MCP.Protocol.Requests.InitializeRequest{}, state) do
-    MCP.Server.log(state, "Hello from Elixir")
-    {:reply, %MCP.Protocol.Structures.InitializeResult{}, state}
+  def handle_request(%Requests.InitializeRequest{}, state) do
+    {:reply,
+     %Structures.InitializeResult{
+       protocol_version: "2024-11-05",
+       capabilities: %Structures.ServerCapabilities{
+         tools: %{}
+       },
+       server_info: %Structures.Implementation{
+         name: "Elixir Example MCP Server",
+         version: "0.1.0"
+       }
+     }, state}
+  end
+
+  @impl true
+  def handle_request(%Requests.PingRequest{}, state) do
+    {:reply, %Structures.Result{}, state}
+  end
+
+  @impl true
+  def handle_request(%Requests.ListToolsRequest{}, state) do
+    {:reply,
+     %Structures.ListToolsResult{
+       tools: [
+         %Structures.Tool{
+           name: "example_tool",
+           description: "Example tool",
+           input_schema: %{
+             type: "object",
+             properties: %{
+               name: %{type: "string"}
+             },
+             required: ["name"]
+           }
+         }
+       ],
+       next_cursor: nil
+     }, state}
   end
 
   def handle_request(message, state) do
     MCP.Server.log(state, "Received request: #{inspect(message)}")
-    {:reply, %{message: "Hello, world!"}, state}
+
+    {:reply,
+     %MCP.Protocol.ErrorResponse{code: 500, message: "Not implemented: #{message.__struct__}"},
+     state}
   end
 
   @impl true
   def handle_notification(message, state) do
     MCP.Server.log(state, "Received notification: #{inspect(message)}")
-    {:noreply, state}
-  end
-
-  def handle_info(message, state) do
-    IO.puts("Received message: #{inspect(message)}")
     {:noreply, state}
   end
 end
