@@ -12,7 +12,7 @@ defmodule MCP.Protocol.Structures.GetPromptResult do
   typedstruct do
     field(:meta, map())
     field(:description, String.t())
-    field(:messages, list())
+    field(:messages, list(PromptMessage))
   end
 
   @doc false
@@ -21,7 +21,7 @@ defmodule MCP.Protocol.Structures.GetPromptResult do
     schema(__MODULE__, %{
       optional({"_meta", :meta}) => map(),
       optional({"description", :description}) => str(),
-      optional({"messages", :messages}) => list()
+      optional({"messages", :messages}) => list(MCP.Protocol.Structures.PromptMessage.schematic())
     })
   end
 end

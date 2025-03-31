@@ -11,7 +11,14 @@ defmodule MCP.Protocol.Structures.ReadResourceResult do
   @derive Jason.Encoder
   typedstruct do
     field(:meta, map())
-    field(:contents, list())
+
+    field(
+      :contents,
+      list(
+        MCP.Protocol.Structures.TextResourceContents.t()
+        | MCP.Protocol.Structures.BlobResourceContents.t()
+      )
+    )
   end
 
   @doc false
@@ -19,7 +26,13 @@ defmodule MCP.Protocol.Structures.ReadResourceResult do
   def schematic() do
     schema(__MODULE__, %{
       optional({"_meta", :meta}) => map(),
-      optional({"contents", :contents}) => list()
+      optional({"contents", :contents}) =>
+        list(
+          oneof([
+            MCP.Protocol.Structures.TextResourceContents.schematic(),
+            MCP.Protocol.Structures.BlobResourceContents.schematic()
+          ])
+        )
     })
   end
 end

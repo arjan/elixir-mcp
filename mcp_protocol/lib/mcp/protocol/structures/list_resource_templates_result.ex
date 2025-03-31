@@ -12,7 +12,7 @@ defmodule MCP.Protocol.Structures.ListResourceTemplatesResult do
   typedstruct do
     field(:meta, map())
     field(:next_cursor, String.t())
-    field(:resource_templates, list())
+    field(:resource_templates, list(ResourceTemplate))
   end
 
   @doc false
@@ -21,7 +21,8 @@ defmodule MCP.Protocol.Structures.ListResourceTemplatesResult do
     schema(__MODULE__, %{
       optional({"_meta", :meta}) => map(),
       optional({"nextCursor", :next_cursor}) => str(),
-      optional({"resourceTemplates", :resource_templates}) => list()
+      optional({"resourceTemplates", :resource_templates}) =>
+        list(MCP.Protocol.Structures.ResourceTemplate.schematic())
     })
   end
 end

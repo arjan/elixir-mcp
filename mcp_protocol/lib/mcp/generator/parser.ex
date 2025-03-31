@@ -249,18 +249,13 @@ defmodule MCP.Protocol.Generator.Parser do
   # Determine the result type for a request
   defp get_result_type_for_request(request_name, spec) do
     # First check if there's a specific result for this request
-    result_name = "#{request_name}Result"
+    result_name = String.replace(request_name, ~r/Request$/, "Result")
 
     cond do
       # Check if there's a direct result type definition
       Map.has_key?(spec["definitions"] || %{}, result_name) ->
         result_name
 
-      # Special case for InitializeRequest -> InitializeResult
-      request_name == "InitializeRequest" ->
-        "InitializeResult"
-
-      # Otherwise look in client/server result types
       true ->
         client_results = get_in(spec, ["definitions", "ClientResult", "anyOf"]) || []
         server_results = get_in(spec, ["definitions", "ServerResult", "anyOf"]) || []
@@ -319,6 +314,32 @@ defmodule MCP.Protocol.Generator.Parser do
     cond do
       prop["$ref"] ->
         extract_definition_name(prop["$ref"])
+
+      prop["type"] == "array" && prop["items"] ->
+        item_type =
+          cond do
+            prop["items"]["$ref"] ->
+              extract_definition_name(prop["items"]["$ref"])
+
+            prop["items"]["type"] ->
+              prop["items"]["type"]
+
+            prop["items"]["anyOf"] ->
+              options =
+                prop["items"]["anyOf"]
+                |> Enum.map(fn option ->
+                  if option["$ref"],
+                    do: extract_definition_name(option["$ref"]),
+                    else: option["type"]
+                end)
+
+              %{type: "anyOf", options: options}
+
+            true ->
+              "any"
+          end
+
+        %{type: "array", items: item_type}
 
       prop["type"] ->
         prop["type"]

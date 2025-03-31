@@ -16,7 +16,7 @@ defmodule MCP.Protocol.Requests.ListResourcesRequest do
     field(:params, MCP.Protocol.Structures.ListResourcesParams.t())
   end
 
-  @type result :: MCP.Protocol.Structures.Result.t()
+  @type result :: MCP.Protocol.Structures.ListResourcesResult.t()
 
   @doc false
   @spec schematic() :: Schematic.t()
@@ -33,7 +33,7 @@ defmodule MCP.Protocol.Requests.ListResourcesRequest do
   @spec result() :: Schematic.t()
   def result() do
     oneof([
-      MCP.Protocol.Structures.Result.schematic(),
+      MCP.Protocol.Structures.ListResourcesResult.schematic(),
       MCP.Protocol.ErrorResponse.schematic()
     ])
   end

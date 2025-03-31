@@ -12,7 +12,7 @@ defmodule MCP.Protocol.Structures.ListPromptsResult do
   typedstruct do
     field(:meta, map())
     field(:next_cursor, String.t())
-    field(:prompts, list())
+    field(:prompts, list(Prompt))
   end
 
   @doc false
@@ -21,7 +21,7 @@ defmodule MCP.Protocol.Structures.ListPromptsResult do
     schema(__MODULE__, %{
       optional({"_meta", :meta}) => map(),
       optional({"nextCursor", :next_cursor}) => str(),
-      optional({"prompts", :prompts}) => list()
+      optional({"prompts", :prompts}) => list(MCP.Protocol.Structures.Prompt.schematic())
     })
   end
 end

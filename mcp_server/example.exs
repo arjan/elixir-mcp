@@ -12,11 +12,18 @@ defmodule TestServer do
     {:ok, assign(state, documents: %{})}
   end
 
+  @impl true
+  def handle_request(%MCP.Protocol.Requests.InitializeRequest{}, state) do
+    MCP.Server.log(state, "Hello from Elixir")
+    {:reply, %MCP.Protocol.Structures.InitializeResult{}, state}
+  end
+
   def handle_request(message, state) do
     MCP.Server.log(state, "Received request: #{inspect(message)}")
     {:reply, %{message: "Hello, world!"}, state}
   end
 
+  @impl true
   def handle_notification(message, state) do
     MCP.Server.log(state, "Received notification: #{inspect(message)}")
     {:noreply, state}

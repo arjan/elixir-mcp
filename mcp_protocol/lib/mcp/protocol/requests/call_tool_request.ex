@@ -16,7 +16,7 @@ defmodule MCP.Protocol.Requests.CallToolRequest do
     field(:params, MCP.Protocol.Structures.CallToolParams.t())
   end
 
-  @type result :: MCP.Protocol.Structures.Result.t()
+  @type result :: MCP.Protocol.Structures.CallToolResult.t()
 
   @doc false
   @spec schematic() :: Schematic.t()
@@ -33,7 +33,7 @@ defmodule MCP.Protocol.Requests.CallToolRequest do
   @spec result() :: Schematic.t()
   def result() do
     oneof([
-      MCP.Protocol.Structures.Result.schematic(),
+      MCP.Protocol.Structures.CallToolResult.schematic(),
       MCP.Protocol.ErrorResponse.schematic()
     ])
   end

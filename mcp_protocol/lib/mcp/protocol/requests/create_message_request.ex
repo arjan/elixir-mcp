@@ -16,7 +16,7 @@ defmodule MCP.Protocol.Requests.CreateMessageRequest do
     field(:params, MCP.Protocol.Structures.CreateMessageParams.t())
   end
 
-  @type result :: MCP.Protocol.Structures.Result.t()
+  @type result :: MCP.Protocol.Structures.CreateMessageResult.t()
 
   @doc false
   @spec schematic() :: Schematic.t()
@@ -33,7 +33,7 @@ defmodule MCP.Protocol.Requests.CreateMessageRequest do
   @spec result() :: Schematic.t()
   def result() do
     oneof([
-      MCP.Protocol.Structures.Result.schematic(),
+      MCP.Protocol.Structures.CreateMessageResult.schematic(),
       MCP.Protocol.ErrorResponse.schematic()
     ])
   end

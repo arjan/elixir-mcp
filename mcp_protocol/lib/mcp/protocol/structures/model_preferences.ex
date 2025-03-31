@@ -21,7 +21,7 @@ defmodule MCP.Protocol.Structures.ModelPreferences do
   @derive Jason.Encoder
   typedstruct do
     field(:cost_priority, number())
-    field(:hints, list())
+    field(:hints, list(ModelHint))
     field(:intelligence_priority, number())
     field(:speed_priority, number())
   end
@@ -31,7 +31,7 @@ defmodule MCP.Protocol.Structures.ModelPreferences do
   def schematic() do
     schema(__MODULE__, %{
       optional({"costPriority", :cost_priority}) => int(),
-      optional({"hints", :hints}) => list(),
+      optional({"hints", :hints}) => list(MCP.Protocol.Structures.ModelHint.schematic()),
       optional({"intelligencePriority", :intelligence_priority}) => int(),
       optional({"speedPriority", :speed_priority}) => int()
     })

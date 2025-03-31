@@ -13,7 +13,7 @@ defmodule MCP.Protocol.Structures.ListRootsResult do
   @derive Jason.Encoder
   typedstruct do
     field(:meta, map())
-    field(:roots, list())
+    field(:roots, list(Root))
   end
 
   @doc false
@@ -21,7 +21,7 @@ defmodule MCP.Protocol.Structures.ListRootsResult do
   def schematic() do
     schema(__MODULE__, %{
       optional({"_meta", :meta}) => map(),
-      optional({"roots", :roots}) => list()
+      optional({"roots", :roots}) => list(MCP.Protocol.Structures.Root.schematic())
     })
   end
 end

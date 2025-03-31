@@ -10,7 +10,7 @@ defmodule MCP.Protocol.Structures.Prompt do
 
   @derive Jason.Encoder
   typedstruct do
-    field(:arguments, list())
+    field(:arguments, list(PromptArgument))
     field(:description, String.t())
     field(:name, String.t())
   end
@@ -19,7 +19,8 @@ defmodule MCP.Protocol.Structures.Prompt do
   @spec schematic() :: Schematic.t()
   def schematic() do
     schema(__MODULE__, %{
-      optional({"arguments", :arguments}) => list(),
+      optional({"arguments", :arguments}) =>
+        list(MCP.Protocol.Structures.PromptArgument.schematic()),
       optional({"description", :description}) => str(),
       optional({"name", :name}) => str()
     })

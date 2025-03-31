@@ -22,7 +22,7 @@ defmodule MCP.Protocol.Requests.ListRootsRequest do
     field(:params, MCP.Protocol.Structures.ListRootsParams.t())
   end
 
-  @type result :: MCP.Protocol.Structures.Result.t()
+  @type result :: MCP.Protocol.Structures.ListRootsResult.t()
 
   @doc false
   @spec schematic() :: Schematic.t()
@@ -39,7 +39,7 @@ defmodule MCP.Protocol.Requests.ListRootsRequest do
   @spec result() :: Schematic.t()
   def result() do
     oneof([
-      MCP.Protocol.Structures.Result.schematic(),
+      MCP.Protocol.Structures.ListRootsResult.schematic(),
       MCP.Protocol.ErrorResponse.schematic()
     ])
   end

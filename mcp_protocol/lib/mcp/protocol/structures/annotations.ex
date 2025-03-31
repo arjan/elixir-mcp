@@ -10,7 +10,7 @@ defmodule MCP.Protocol.Structures.Annotations do
 
   @derive Jason.Encoder
   typedstruct do
-    field(:audience, list())
+    field(:audience, list(Role))
     field(:priority, number())
   end
 
@@ -18,7 +18,7 @@ defmodule MCP.Protocol.Structures.Annotations do
   @spec schematic() :: Schematic.t()
   def schematic() do
     schema(__MODULE__, %{
-      optional({"audience", :audience}) => list(),
+      optional({"audience", :audience}) => list(MCP.Protocol.Structures.Role.schematic()),
       optional({"priority", :priority}) => int()
     })
   end

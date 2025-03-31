@@ -20,7 +20,17 @@ defmodule MCP.Protocol.Structures.CallToolResult do
   @derive Jason.Encoder
   typedstruct do
     field(:meta, map())
-    field(:content, list())
+
+    field(
+      :content,
+      list(
+        MCP.Protocol.Structures.TextContent.t()
+        | MCP.Protocol.Structures.ImageContent.t()
+        | MCP.Protocol.Structures.AudioContent.t()
+        | MCP.Protocol.Structures.EmbeddedResource.t()
+      )
+    )
+
     field(:is_error, boolean())
   end
 
@@ -29,7 +39,15 @@ defmodule MCP.Protocol.Structures.CallToolResult do
   def schematic() do
     schema(__MODULE__, %{
       optional({"_meta", :meta}) => map(),
-      optional({"content", :content}) => list(),
+      optional({"content", :content}) =>
+        list(
+          oneof([
+            MCP.Protocol.Structures.TextContent.schematic(),
+            MCP.Protocol.Structures.ImageContent.schematic(),
+            MCP.Protocol.Structures.AudioContent.schematic(),
+            MCP.Protocol.Structures.EmbeddedResource.schematic()
+          ])
+        ),
       optional({"isError", :is_error}) => bool()
     })
   end

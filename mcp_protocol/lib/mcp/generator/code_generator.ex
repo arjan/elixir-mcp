@@ -532,7 +532,29 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
       Map.has_key?(type, :type) and type.type == "anyOf" ->
         "map()"
 
+      # Handle array with anyOf items
+      Map.has_key?(type, :type) and type.type == "array" and is_map(type.items) and
+          type.items.type == "anyOf" ->
+        options_types =
+          Enum.map_join(type.items.options, " | ", fn option ->
+            if String.contains?(option, ".") do
+              ref_parts = String.split(option, ".")
+              module_name = List.last(ref_parts)
+              "MCP.Protocol.Structures.#{module_name}.t()"
+            else
+              "MCP.Protocol.Structures.#{option}.t()"
+            end
+          end)
+
+        "list(#{options_types})"
+
+      # Handle array type structure from parser
+      Map.has_key?(type, :type) and type.type == "array" ->
+        item_type = map_type(type.items)
+        "list(#{item_type})"
+
       true ->
+        IO.inspect(type)
         "any()"
     end
   end
@@ -582,6 +604,19 @@ defmodule MCP.Protocol.Generator.CodeGenerator do
   defp map_schematic_type(types) when is_list(types) do
     types_schematics = Enum.map(types, fn t -> map_schematic_type(t) end)
     "oneof([#{Enum.join(types_schematics, ", ")}])"
+  end
+
+  # Handle array with anyOf items
+  defp map_schematic_type(%{type: "array", items: %{type: "anyOf", options: options}}) do
+    options_schematics =
+      Enum.map_join(options, ", ", fn option -> map_schematic_type(option) end)
+
+    "list(oneof([#{options_schematics}]))"
+  end
+
+  # Handle array with specific item type
+  defp map_schematic_type(%{type: "array", items: type}) do
+    "list(#{map_schematic_type(type)})"
   end
 
   defp map_schematic_type(type) when is_map(type) do
