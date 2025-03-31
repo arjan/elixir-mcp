@@ -1,4 +1,6 @@
-# Elixir Model Context Protocol SDK
+# Model Context Protocol SDK for Elixir
+
+A toolkit for building servers (and clients!) that enable LLMs to call tools and access context.
 
 [![MCP Protocol CI](https://github.com/arjan/elixir-mcp/actions/workflows/mcp_protocol.yml/badge.svg)](https://github.com/arjan/elixir-mcp/actions/workflows/mcp_protocol.yml)
 
